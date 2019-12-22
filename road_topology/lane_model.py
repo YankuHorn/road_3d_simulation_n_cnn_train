@@ -1,7 +1,7 @@
-from scipy.interpolate import lagrange
-from numpy.polynomial.polynomial import Polynomial
+# from scipy.interpolate import lagrange
+# from numpy.polynomial.polynomial import Polynomial
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 class LaneModel:
     def __init__(self):
@@ -136,6 +136,16 @@ class LaneModel:
         self.a3 = coeffs[3]
         self.a4 = coeffs[4]
 
+    def flip_back_front(self, dist=100):
+        self.a0 *= -1
+        self.a1 *= -1
+        self.a2 *= -1
+        self.a3 *= -1
+        self.a4 *= -1
+
+        # self.a0 -= self.Z2X(100)
+        # self.a1 -= self.dX_dZ(100)
+
     def all(self):
         print('a0:', self.a0, 'a1:', self.a1, 'a2:', self.a2, 'a3:', self.a3, 'a4:', self.a4)
 
@@ -148,3 +158,35 @@ class LaneModel:
 
     def set_a0(self, new_a0):
         self.a0 = new_a0
+
+    def get_points(self, view_range=None):
+        points = list()
+        if view_range is None:
+            view_range = [-100, 200]
+
+        for Z in range(view_range[0], view_range[1]):
+            X = self.Z2X(Z)
+            points.append([X, Z])
+        np_points = np.asarray(points)
+        return np_points
+
+    def display(self, view_range=None):
+        points = list()
+        if view_range is None:
+            view_range = [-100, 200]
+        for Z in range(view_range[0], view_range[1]):
+            X = self.Z2X(Z)
+            points.append([X,Z])
+        np_points = np.asarray(points)
+
+        plt.plot(np_points[:, 0])
+
+        plt.show()
+
+if __name__ == "__main__":
+
+    lm = LaneModel()
+    lm.load_model(a0=2, a1=0.1, a2=0.001, a3=-0.0006, a4=0)
+    lm.display()
+    lm.flip_back_front()
+    print("b points")

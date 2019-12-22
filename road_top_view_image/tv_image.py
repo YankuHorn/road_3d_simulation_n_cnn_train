@@ -13,8 +13,14 @@ def frange(x, y, jump):
     yield x
     x += jump
 
-
-
+class drawed_point:
+    def __init__(self, r, c, clr, point_type, is_exit=False, is_merge=False):
+        self.r = r
+        self.c = c
+        self.clr = clr
+        self.point_type = point_type,
+        self.is_exit = is_exit
+        self.is_merge = is_merge
 
 class TV_image:
     def __init__(self, width_pix=4800, height_pix=24000, width_m=40, height_m=200):
@@ -26,6 +32,7 @@ class TV_image:
         self.dimensions = (self.img_w, self.img_h)
         self.width_m = width_m
         self.height_m = height_m
+        self.exit_merge_points = np.zeros((height_pix, width_pix, 2), dtype=bool)
 
     def XZ2mn(self, X, Z):
         m = int((self.width_m/2 + X ) / self.pixel_width)
@@ -78,8 +85,11 @@ class TV_image:
             self.img = draw_rect(self.img, n_lc, m_lc, n_rf, m_rf, color)
 
     def draw_line(self, line):
+
         for i in range(line.num_segments):
             for Z in frange(line.Z_ranges[i][0], line.Z_ranges[i][1], self.pixel_height):
+                if (Z > line.gap['begin']) and (Z < line.gap['begin'] + line.gap['length']):
+                    continue
                 X_center = line.lane_models[i].Z2X(Z)
                 half_width = line.widths[i] * 0.5
                 for X in frange(X_center - half_width, X_center + half_width, self.pixel_width):
@@ -87,7 +97,7 @@ class TV_image:
                     color = type2color(line.solidashed_types[i])
                     if m is not None:
                         self.img[n, m] = np.asarray(color)
-
+                        self.exit_merge_points[n, m] = [line.is_exit[i], line.is_merge[i]]
     # def draw_lanes(self, main_lane_model, exit_lane_model=None):
     #     #    def draw_lanes(self,
     #

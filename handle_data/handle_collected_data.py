@@ -6,22 +6,10 @@ import numpy as np
 import cv2
 import random
 import csv
+from tools.draw_tools import type2color, idx2type, type2idx
 
-seg_to_display = [2, 3, 4]
-colors = [
-    [0, 0, 254],
-    [0, 254, 0],
-    [254, 0, 0],
-    [128, 0, 254],
-    [0, 128, 254],
-    [254, 128, 0],
-    [254, 254, 0],
-    [0, 254, 128],
-    [128, 254, 0],
-    [128, 128, 128],
-    [254, 0, 128],
-    [128, 0, 128]
-]
+
+seg_to_display = [3, 4]
 
 
 def is_seg_file(filename):
@@ -29,7 +17,6 @@ def is_seg_file(filename):
 
 
 def read_objects_csv(filename):
-
     f = open(filename, "r")
     lines = f.read().split('\n')
     objects = list()
@@ -40,7 +27,7 @@ def read_objects_csv(filename):
             single_object['type'] = line_stripped[1]
             single_object['bottom'] = int(float(line_stripped[4])) + int(float(line_stripped[6]))
             single_object['top'] = int(float(line_stripped[4]))
-            single_object['left'] = int(float(line_stripped[3])) # - int(line_stripped[6]))
+            single_object['left'] = int(float(line_stripped[3]))  # - int(line_stripped[6]))
             single_object['right'] = int(float(line_stripped[3])) + int(float(line_stripped[5]))
             objects.append(single_object)
         if line_stripped[7] == '1':
@@ -58,7 +45,7 @@ def add_seg_layer(display_img, orig_img):
     display_img_res = display_img.copy()
     for i in range(12):
         if i in seg_to_display:
-            display_img_res[orig_img[:, :, 0] == i] = colors[i]
+            display_img_res[orig_img[:, :, 0] == i] = type2color(idx2type(i))
     return display_img_res
 
 
@@ -72,37 +59,55 @@ def draw_rectangle(display_image, color, top, bottom, left, right):
 
 
 def add_objects_layer(display_image, objects):
-
     for single_object in objects:
         if single_object['type'] == 'Vehicle':
-            color = colors[9]
+            color = type2color('vehicle')
+
         elif single_object['type'] == 'rear_vehicle':
-            color = colors[10]
+            color = type2color('vehicle')
         else:
             print('no color for type', single_object['type'])
             continue
-        display_image = draw_rectangle(display_image, color, single_object['top'], single_object['bottom'], single_object['left'], single_object['right'])
+        display_image = draw_rectangle(display_image, color, single_object['top'], single_object['bottom'],
+                                       single_object['left'], single_object['right'])
     return display_image
 
 
-def show_seg_images(seg_dir):
+def save_as_seg_image(display_image, save_path):
+    seg_image_full = np.zeros(shape=(display_image.shape[0], display_image.shape[1]), dtype=np.uint8)
+
+    solid_indices = np.where(display_image[:, :, 0] == type2color('solid')[0])
+    dashed_indices = np.where(display_image[:, :, 0] == type2color('dashed')[0])
+    vcl_indices = np.where(display_image[:, :, 0] == type2color('vehicle')[0])
+    seg_image_full[solid_indices[0], solid_indices[1]] = type2idx('solid')
+    seg_image_full[dashed_indices[0], dashed_indices[1]] = type2idx('dashed')
+    seg_image_full[vcl_indices[0], vcl_indices[1]] = type2idx('vehicle')
+
+    cv2.imwrite(save_path, seg_image_full)
+
+def show_seg_images(seg_dir, show=False, save=False):
     files_list = os.listdir(seg_dir)
 
     for j in range(len(files_list)):
-        rand_ind = random.randint(0,len(files_list))
-        seg_filename = files_list[rand_ind]
+        # rand_ind = random.randint(0, len(files_list))
+        # seg_filename = files_list[rand_ind]
+        seg_filename = files_list[j]
         if is_seg_file(seg_filename):
             full_path_seg_image = os.path.join(seg_dir, seg_filename)
-            orig_img = cv2.imread(full_path_seg_image)
+            # if 'crop' in seg_filename:
+            #     cropped_orig_img = cv2.imread(full_path_seg_image)
+            #     full_orig_img = cv2.imread(full_path_seg_image.replace('_crop_', '_'))
+            # else:
+            #     cropped_orig_img = cv2.imread(full_path_seg_image.replace('center_','center_crop_'))
+            full_orig_img = cv2.imread(full_path_seg_image)
 
-            display_image = np.zeros((orig_img.shape[0], orig_img.shape[1], 3))
-            display_image = add_seg_layer(display_image, orig_img)
+            display_image = np.zeros((full_orig_img.shape[0], full_orig_img.shape[1], 3))
+            display_image = add_seg_layer(display_image, full_orig_img)
 
             csv_filename = seg_filename.replace('seg', 'out').replace('png', 'csv')
             full_path_csv = os.path.join(seg_dir, csv_filename)
             objects = read_objects_csv(full_path_csv)
             display_image = add_objects_layer(display_image, objects)
-
 
             fig = plt.figure(figsize=(2, 1))
             fig.add_subplot(2, 1, 1)
@@ -110,7 +115,7 @@ def show_seg_images(seg_dir):
             raw_filename = seg_filename.replace('seg', 'img')
             full_path_raw_image = os.path.join(seg_dir, raw_filename)
             raw_img = cv2.imread(full_path_raw_image)
-            #plt.figure('raw_image')
+            # plt.figure('raw_image')
             fig.add_subplot(2, 1, 2)
             plt.imshow(raw_img)
 
@@ -118,10 +123,16 @@ def show_seg_images(seg_dir):
             mng.resize(*mng.window.maxsize())
             # mng = plt.get_current_fig_manager()
             # mng.full_screen_toggle()
-            plt.show()
+            if show:
+                plt.show()
 
             print('for the b-point')
+            save_path = os.path.join(seg_dir, seg_filename.replace("seg","se9_for_prediction"))
+            save_as_seg_image(display_image, save_path)
 
 if __name__ == "__main__":
-    seg_dir_name = 'D:\\phantomAI\\data\\collected_data\\2019-05-09-12-19-52_MapTest\\I92_exit_I280\\I92_exit_I280'
-    show_seg_images(seg_dir_name)
+    # seg_dir_name = 'D:\\phantomAI\\data\\collected_data\\2019-05-09-12-19-52_MapTest\\I92_exit_I280\\I92_exit_I280'
+    seg_dir_name = 'D:\\phantomAI\\data\\collected_data\\2019-06-27-14-00-57_Ford_101_92_280\I92_merge_exit_9B_merge'
+
+
+    show_seg_images(seg_dir_name, show=False, save=True)

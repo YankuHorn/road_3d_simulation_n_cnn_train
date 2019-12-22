@@ -1,0 +1,17 @@
+image_params:
+    img_height: 512
+    img_width: 288
+    orig_img_width: 288
+    orig_img_height: 512
+    channels: 1
+    n_labels: 3
+train_params:
+    n_labels: 1
+    batch_size: 11
+    learning_rate: 0.001
+    weights:
+        horizon: 1.0
+        scene_class: 0.0
+        scene_class_weights: [0.2, 0.4, 0.4]
+    max_iter: 1280
+    init_filters_num: 8

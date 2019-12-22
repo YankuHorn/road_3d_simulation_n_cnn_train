@@ -19,7 +19,7 @@ def get_rand_int(start, end, num_items=None):
         return np.asarray(rand_ints_list)
 
 
-def get_rand_out_of_list_item(objects_list, num_items=None, objects_weights=None):
+def get_rand_out_of_list_item(objects_list: list, num_items=None, objects_weights=None):
     # return random item within a given list
     if num_items is None:
         if objects_weights is None:
@@ -40,7 +40,7 @@ def get_rand_out_of_list_item(objects_list, num_items=None, objects_weights=None
         return res_list
 
 
-def get_rand_list_item(items_list):
+def get_rand_list_item_simple(items_list):
     return items_list[random.randrange(len(items_list))]
 
 

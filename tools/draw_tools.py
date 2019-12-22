@@ -1,15 +1,43 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+def idx2type(idx):
+    if idx == 3:
+        type = 'solid'
+    elif idx == 4:
+        type = 'dashed'
+    elif idx == 8:
+        type = 'vehicle'
+    else:
+        print("no type for this idx yet:", idx)
+    return type
+
+
+def type2idx(type):
+
+    idx = None
+    if type == 'solid':
+        idx = 3
+    elif type == 'dashed':
+        idx = 4
+    elif type == 'vehicle':
+        idx = 8
+    else:
+        print("no index for this type yet:", type)
+    return idx
 
 def type2color(type):
+    """
+    # pay attention - the first channel ('R', indexed 0) should be unique per type!!!
+    """
+
     color = [0, 0, 0]
     if type == 'solid':
-        color = [0, 255, 255]
+        color = [1, 255, 255]
     elif type == 'dashed':
-        color = [255, 255, 0]
+        color = [253, 255, 0]
     elif type == 'vehicle':
-        color = [255, 0, 255]
+        color = [252, 0, 255]
     else:
         print("no color for this type yet:", type)
     return color

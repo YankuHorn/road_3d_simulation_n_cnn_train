@@ -5,20 +5,23 @@ import _thread
 import json
 #import training.utils as utils
 import os
+
 from training.data.data_utils import DataUtils
 from training.models_manager.models_manager import ModelManager
 # from training.models_manager.my_losses import borders_loss_L2, borders_loss_L4
 from training.train.logger import TrainLogger
 from keras.callbacks import TensorBoard
-from training.data.data_generator import DataGenerator
+from training.data.conv_data_generator import conv_DataGenerator
+from training.data.pointnet_data_generator import PointNetDataGenerator
+from training.data.Data_generator import DataGenerator
 from keras.models import load_model
 import socket
 from pathlib import Path
 import numpy as np
 
-
 # ML_LT_01:
-# C:\Users\kobih\Anaconda3\envs\python3\python.exe -m tensorboard.main --logdir=D:\phantomAI\data\synthesized_data\testing\2019_12_11__20_32_run\front_view_image\train_2019_07_09__13_32 --port=6041 --host=127.0.0.1
+# C:\Users\User\.conda\envs\tensorflow_gpu3\python.exe -m tensorboard.main --logdir=D:\phantomAI\data\synthesized_data\testing\2019_12_11__20_32_run\front_view_image\train_2019_07_09__13_32 --port=6041 --host=127.0.0.1
+
 
 def get_project_root() -> Path:
     """Returns project root folder."""
@@ -76,6 +79,7 @@ class Train:
         with open(os.path.join(save_path, "parameters.yml"), 'w') as outfile:
             yaml.dump(self.params, outfile)
 
+
         # prepare model:
         n_labels = self.params['image_params']['n_labels']
         init_filters_num = self.params['train_params']['init_filters_num']
@@ -83,7 +87,7 @@ class Train:
         img_height = self.params['image_params']['img_height']
         img_width = self.params['image_params']['img_width']
         n_channels = self.params['image_params']['channels']
-        input_shape = (img_width, img_height, n_channels)
+
 
         train_backbone = self.setup['train_backbone']
         # Training the model
@@ -96,6 +100,8 @@ class Train:
 
         img_width = self.params["image_params"]["img_width"]
         img_height = self.params["image_params"]["img_height"]
+        max_num_points = self.params["image_params"]["max_num_points"]
+        max_columns = self.params["image_params"]["max_columns"]
         des_dim = (img_height, img_width)
 
         input_img_width = self.params["image_params"]["orig_img_width"]
@@ -113,18 +119,39 @@ class Train:
         # __init__(self, list_IDs, data_dir, labels_dir, batch_size=10, inp_dim=(560, 560), des_dim=(384, 384),
         #          n_channels=3,
         #          shuffle=True, augment=None, data_format="channels_last", outputs=None):
-        training_generator = DataGenerator(train_filesname, raw_directory, data_directory, batch_size=batch_size, inp_dim=(288, 512),
-                                           des_dim=(288, 512), n_channels=1,
-                                           shuffle=True, data_format=data_format, outputs=required_outputs)
-
+        if (model_name == "horizon_exit_merge") or (model_name == "inception_v3"):
+            input_shape = (img_height, img_width, n_channels)
+            training_generator = conv_DataGenerator(train_filesname, raw_directory, data_directory,
+                                                    batch_size=batch_size, n_channels=n_channels,
+                                                    shuffle=True, data_format=data_format, outputs=required_outputs)
+        elif model_name == "pointnet_cls":
+            input_shape = (max_num_points, n_channels)
+            training_generator = PointNetDataGenerator(train_filesname, raw_directory, data_directory,
+                                                       batch_size=batch_size, max_num_points=max_num_points,
+                                                       shuffle=True, data_format=data_format, outputs=required_outputs)
+        elif model_name == "hybrid":
+            input_shape = (288, max_num_points, 2)
+            training_generator = DataGenerator(train_filesname, raw_directory, data_directory,
+                                                       batch_size=batch_size, max_num_columns=max_columns,
+                                                       shuffle=True, data_format=data_format, outputs=required_outputs)
         val_data_directory = os.path.join(main_img_dir, "val", "meta_data")
         val_raw_directory = os.path.join(main_img_dir, "val", "front_view_image")
         val_filesname = DataUtils.load_all_file_names(val_raw_directory, required_name_start='front_view_image', img_format="png")
-
-        validation_generator = DataGenerator(val_filesname, val_raw_directory, val_data_directory, batch_size=batch_size, inp_dim=(288, 512),
-                                             des_dim=(288, 512), n_channels=1,
-                                             shuffle=True, augment=None, data_format=data_format, outputs=required_outputs)
-
+        if (model_name == "horizon_exit_merge") or (model_name == "inception_v3"):
+            validation_generator = conv_DataGenerator(val_filesname, val_raw_directory, val_data_directory,
+                                                      batch_size=batch_size, n_channels=n_channels,
+                                                      shuffle=True, augment=None,
+                                                      data_format=data_format, outputs=required_outputs)
+        elif model_name == "pointnet_cls":
+            validation_generator = PointNetDataGenerator(val_filesname, val_raw_directory, val_data_directory,
+                                                         batch_size=batch_size, max_num_points=max_num_points,
+                                                         shuffle=True, augment=None,
+                                                         data_format=data_format, outputs=required_outputs)
+        elif model_name == "hybrid":
+            validation_generator = DataGenerator(val_filesname, val_raw_directory, val_data_directory,
+                                                         batch_size=batch_size, max_num_columns=max_columns,
+                                                         shuffle=True, augment=None,
+                                                         data_format=data_format, outputs=required_outputs)
         # temp_ids = train_filesname[:5]
         # training_generator.generate_data_with_list_ids(temp_ids)
 
@@ -137,8 +164,12 @@ class Train:
         logger_tensorboard3 = TrainLogger(os.path.join(save_path, 'train_horizon'))
         logger_tensorboard4 = TrainLogger(os.path.join(save_path, 'val_horizon'))
         #
-        logger_tensorboard5 = TrainLogger(os.path.join(save_path, 'train_scene_class'))
-        logger_tensorboard6 = TrainLogger(os.path.join(save_path, 'val_scene_class'))
+        # logger_tensorboard5 = TrainLogger(os.path.join(save_path, 'train_yaw'))
+        # logger_tensorboard6 = TrainLogger(os.path.join(save_path, 'val_yaw'))
+
+        logger_tensorboard7 = TrainLogger(os.path.join(save_path, 'train_scene_class'))
+        logger_tensorboard8 = TrainLogger(os.path.join(save_path, 'val_scene_class'))
+
         model, data_format = self.model_manager.get_model_for_train(model_name, n_labels, input_shape, init_filters_num, train_backbone)
         print(model.summary())
         if self.setup["load_model"]:
@@ -147,8 +178,12 @@ class Train:
         self.model_manager.compile_model(model, model_name, self.params['train_params'])
 
         i_epoch = 1
-        dataset_name = main_img_dir.split('\\')[-1]
+        dataset_name = str(main_img_dir.split('\\')[-1])
         filename_init = dataset_name + date_time_str + "_nfltr" + str(init_filters_num) + "run_v_"
+        out_model_file = os.path.join(save_path, filename_init + "_model_file.py")
+        import shutil
+        shutil.copy('D:\\phantomAI\\code\\road_3d\\training\\models_manager\\models\\my_pointnet_horizon_HPInc.py', out_model_file)
+
         while i_epoch < max_iter:
 
             # history = self.model_manager.train_model(model, model_name, training_generator, validation_generator,
@@ -166,22 +201,31 @@ class Train:
             self.model_manager.print_model_data(history, model_name, i_epoch)
 
             # save to tensorboard:
-            logger_tensorboard1.scalar_summary('loss', history.history["loss"][0], i_epoch)
-            logger_tensorboard2.scalar_summary('loss', history.history["val_loss"][0], i_epoch)
-            logger_tensorboard3.scalar_summary('horizon', history.history["horizon_loss"][0], i_epoch)
-            logger_tensorboard4.scalar_summary('horizon', history.history["val_horizon_loss"][0], i_epoch)
-            logger_tensorboard5.scalar_summary('scene_class', history.history["scene_class_loss"][0], i_epoch)
-            logger_tensorboard6.scalar_summary('scene_class', history.history["val_scene_class_loss"][0], i_epoch)
+            logger_tensorboard1.log_scalar('loss', history.history["loss"][0], i_epoch)
+            logger_tensorboard2.log_scalar('loss', history.history["val_loss"][0], i_epoch)
+            logger_tensorboard3.log_scalar('horizon', history.history["horizon_loss"][0], i_epoch)
+            logger_tensorboard4.log_scalar('horizon', history.history["val_horizon_loss"][0], i_epoch)
+            # logger_tensorboard5.log_scalar('yaw', history.history["yaw_loss"][0], i_epoch)
+            # logger_tensorboard6.log_scalar('yaw', history.history["val_yaw_loss"][0], i_epoch)
+            logger_tensorboard7.log_scalar('scene_class', history.history["scene_class_loss"][0], i_epoch)
+            logger_tensorboard8.log_scalar('scene_class', history.history["val_scene_class_loss"][0], i_epoch)
 
             # save_path, seg_model, filename, val_loss, val_acc
             filename = filename_init + str(i_epoch)
             print("Saving into: ", save_path)
             save_model_thin(save_path, model, filename, val_loss=history.history["loss"][0], val_acc=0)
+
+            log_fn = str(filename_init) + "_log.txt"
+            log_full_fn = os.path.join(save_path, log_fn)
+            with open(log_full_fn, 'a') as the_file:
+                the_file.write(str(history.history["horizon_loss"][0]) + " " + str(history.history["val_horizon_loss"][0]) + '\n')
+
             print(" ************** @@@@@@ just fitted generator, i_epoch=", i_epoch)
 
             i_epoch += 1
 
 
 if __name__ == "__main__":
+    print("333")
     tmh = Train()
     tmh.train()

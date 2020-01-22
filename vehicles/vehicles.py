@@ -28,6 +28,7 @@ class SingleVehicle:
         self.visibility = visibility
         self.position_in_lane = position_in_lane
 
+
     def get_close_Z(self):
         # vcl starts at distance and ends at distance + length
         return self.distance

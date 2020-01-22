@@ -4,6 +4,93 @@ import os
 import numpy as np
 # import src.cfgs.colors as colors
 
+IMG_HEIGHT = 288.
+IMG_WIDTH = 512.
+
+one_over_img_height = 1.0 / IMG_HEIGHT
+one_over_img_width = 1.0 / IMG_WIDTH
+
+
+def img2hybrid_single_example_batch(img, num_columns=50):
+    img_l = list(img)
+    img_h_l = img2_hybrid_points(img, num_columns=50)
+    return img_h_l[0]
+
+
+def img2_hybrid_points(img, num_columns=50, num_channels=3):
+
+    lanes_img = np.zeros_like(img)
+    lanes_img[img == 4] = 4
+    lanes_img[img == 3] = 3
+    lanes_non_z_img = np.nonzero(lanes_img)
+
+    vcls_img = np.zeros_like(img)
+    vcls_img[img == 8] = 8
+    vcls_non_z_img = np.nonzero(vcls_img)
+
+    reduced_img_lanes = np.zeros((img.shape[0], num_columns))
+    indices_img_lanes = np.zeros((img.shape[0], num_columns))
+
+    reduced_img_vcls = np.zeros((img.shape[0], num_columns))
+    indices_img_vcls = np.zeros((img.shape[0], num_columns))
+
+    lined_indices =  np.zeros((img.shape[0], num_columns))
+    half_columns = num_columns // 2
+
+    for i in range(img.shape[0]):
+        non_z_lanes_xx = np.nonzero(lanes_non_z_img[0] == i)
+        non_z_vcls_xx = np.nonzero(vcls_non_z_img[0] == i)
+        num_col_lanes = min(num_columns, len(non_z_lanes_xx[0]))
+        num_col_vcls = min(num_columns, len(non_z_vcls_xx[0]))
+        beg_idx_lanes = half_columns - (num_col_lanes // 2)
+        end_idx_lanes = beg_idx_lanes + len(lanes_non_z_img[1][non_z_lanes_xx[0][:num_col_lanes]])
+        beg_idx_vcls = half_columns - (num_col_vcls // 2)
+        end_idx_vcls = beg_idx_vcls + len(vcls_non_z_img[1][non_z_vcls_xx[0][:num_col_vcls]])
+        reduced_img_lanes[i, beg_idx_lanes:end_idx_lanes] = img[i, lanes_non_z_img[1][non_z_lanes_xx[0][:num_col_lanes]]]
+        reduced_img_vcls[i, beg_idx_vcls:end_idx_vcls] = img[i, vcls_non_z_img[1][non_z_vcls_xx[0][:num_col_vcls]]]
+
+        indices_img_lanes[i, beg_idx_lanes:end_idx_lanes] = lanes_non_z_img[1][non_z_lanes_xx[0][:num_col_lanes]] / 512.
+        indices_img_vcls[i, beg_idx_vcls:end_idx_vcls] = vcls_non_z_img[1][non_z_vcls_xx[0][:num_col_vcls]] / 512.
+
+        lined_indices[i, :] = np.full(num_columns, i / 288.)
+
+    res_lanes = np.concatenate((np.expand_dims(reduced_img_lanes, axis=2), np.expand_dims(indices_img_lanes, axis=2)),
+                               axis=2)
+    res_vcls = np.concatenate((np.expand_dims(reduced_img_vcls, axis=2), np.expand_dims(indices_img_vcls, axis=2)),
+                               axis=2)
+    res = np.concatenate((res_lanes, res_vcls, np.expand_dims(lined_indices, axis=2)), axis=2)
+    return res
+
+
+def img2points(img, one_over_img_shape=(one_over_img_height, one_over_img_width), max_num_points=None):
+
+    # no_vcls_img = np.zeros_like(img)
+    # no_vcls_img[img == 4] = 4
+    # no_vcls_img[img == 3] = 3
+    non_z_points = np.asarray(np.nonzero(img)).T
+    non_z_points_val = np.expand_dims(img[non_z_points[:, -2], non_z_points[:, -1]], axis=1)
+
+    non_z_points = non_z_points * one_over_img_shape
+
+    # points = np.concatenate((non_z_points, non_z_points_val, non_z_points * non_z_points,
+    #                          np.expand_dims(non_z_points[:, 0] * non_z_points[:, 1], axis=1)), axis=1)
+    points = np.concatenate((non_z_points, non_z_points_val), axis=1)
+    if max_num_points is not None:
+        # print("num_points", len(points), "max",max_num_points)
+        np.random.shuffle(points)
+        points = points[:max_num_points]
+    return points
+
+
+def img2points_single_example_batch(img, max_num_points=None):
+    non_z_points = np.asarray(np.nonzero(img)).T
+    non_z_points_val = np.expand_dims(img[0, non_z_points[:, 1], non_z_points[:, 2], 0], axis=1)
+
+    points = np.concatenate((non_z_points[:,1:3], non_z_points_val), axis=1)
+    if max_num_points is not None:
+        np.random.shuffle(points)
+        points = points[:max_num_points]
+    return points
 
 class DataUtils:
     @staticmethod

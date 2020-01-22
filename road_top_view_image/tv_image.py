@@ -2,7 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
-from tools.draw_tools import draw_rect, type2color
+from tools.draw_tools import draw_rect, type_name2color
 
 # ========================================
 # Written by Kobi horn, Oct 2019
@@ -80,7 +80,7 @@ class TV_image:
         m_lf, n_lf = self.XZ2mn(X_l, Z_f)
         m_rc, n_rc = self.XZ2mn(X_r, Z_c)
         m_rf, n_rf = self.XZ2mn(X_r, Z_f)
-        color = type2color('vehicle')
+        color = type_name2color('vehicle')
         if (m_lc is not None) and (m_rc is not None) and (m_lf is not None) and (m_rf is not None):
             self.img = draw_rect(self.img, n_lc, m_lc, n_rf, m_rf, color)
 
@@ -94,7 +94,7 @@ class TV_image:
                 half_width = line.widths[i] * 0.5
                 for X in frange(X_center - half_width, X_center + half_width, self.pixel_width):
                     m, n = self.XZ2mn(X, Z)
-                    color = type2color(line.solidashed_types[i])
+                    color = type_name2color(line.solidashed_types[i])
                     if m is not None:
                         self.img[n, m] = np.asarray(color)
                         self.exit_merge_points[n, m] = [line.is_exit[i], line.is_merge[i]]

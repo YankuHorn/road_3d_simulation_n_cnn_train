@@ -1,16 +1,19 @@
 image_params:
-    img_height: 512
-    img_width: 288
-    orig_img_width: 288
-    orig_img_height: 512
+    img_height: 288
+    img_width: 512
+    orig_img_width: 512
+    orig_img_height: 288
     channels: 1
     n_labels: 3
+    max_num_points: 4096
+    max_columns: 50
 train_params:
     n_labels: 1
-    batch_size: 11
-    learning_rate: 0.001
+    batch_size: 7
+    learning_rate: 0.0003
     weights:
         horizon: 1.0
+        host_yaw_at_100m: 0.0
         scene_class: 0.0
         scene_class_weights: [0.2, 0.4, 0.4]
     max_iter: 1280

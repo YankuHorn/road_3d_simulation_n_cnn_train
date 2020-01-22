@@ -6,7 +6,7 @@ import numpy as np
 import cv2
 import random
 import csv
-from tools.draw_tools import type2color, idx2type, type2idx
+from tools.draw_tools import type_name2color, idx2type, type2idx
 
 
 seg_to_display = [3, 4]
@@ -45,7 +45,7 @@ def add_seg_layer(display_img, orig_img):
     display_img_res = display_img.copy()
     for i in range(12):
         if i in seg_to_display:
-            display_img_res[orig_img[:, :, 0] == i] = type2color(idx2type(i))
+            display_img_res[orig_img[:, :, 0] == i] = type_name2color(idx2type(i))
     return display_img_res
 
 
@@ -61,10 +61,10 @@ def draw_rectangle(display_image, color, top, bottom, left, right):
 def add_objects_layer(display_image, objects):
     for single_object in objects:
         if single_object['type'] == 'Vehicle':
-            color = type2color('vehicle')
+            color = type_name2color('vehicle')
 
         elif single_object['type'] == 'rear_vehicle':
-            color = type2color('vehicle')
+            color = type_name2color('vehicle')
         else:
             print('no color for type', single_object['type'])
             continue
@@ -76,9 +76,9 @@ def add_objects_layer(display_image, objects):
 def save_as_seg_image(display_image, save_path):
     seg_image_full = np.zeros(shape=(display_image.shape[0], display_image.shape[1]), dtype=np.uint8)
 
-    solid_indices = np.where(display_image[:, :, 0] == type2color('solid')[0])
-    dashed_indices = np.where(display_image[:, :, 0] == type2color('dashed')[0])
-    vcl_indices = np.where(display_image[:, :, 0] == type2color('vehicle')[0])
+    solid_indices = np.where(display_image[:, :, 0] == type_name2color('solid')[0])
+    dashed_indices = np.where(display_image[:, :, 0] == type_name2color('dashed')[0])
+    vcl_indices = np.where(display_image[:, :, 0] == type_name2color('vehicle')[0])
     seg_image_full[solid_indices[0], solid_indices[1]] = type2idx('solid')
     seg_image_full[dashed_indices[0], dashed_indices[1]] = type2idx('dashed')
     seg_image_full[vcl_indices[0], vcl_indices[1]] = type2idx('vehicle')
@@ -135,4 +135,4 @@ if __name__ == "__main__":
     seg_dir_name = 'D:\\phantomAI\\data\\collected_data\\2019-06-27-14-00-57_Ford_101_92_280\I92_merge_exit_9B_merge'
 
 
-    show_seg_images(seg_dir_name, show=False, save=True)
+    show_seg_images(seg_dir_name, show=True, save=True)

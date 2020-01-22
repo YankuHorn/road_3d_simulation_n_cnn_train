@@ -1,8 +1,4 @@
 import numpy as np
-import random
-import csv
-import pandas
-import matplotlib.pyplot as plt
 import os
 from datetime import datetime
 import json

@@ -1,9 +1,16 @@
 {
-    "base_input_data_dir": "D:\\phantomAI\\data\\synthesized_data\\testing\\2019_12_11__20_32_run_\\",
+    "_base_input_data_dir": "D:\\phantomAI\\data\\synthesized_data\\2020_01_06__14_23_run_mixed_with_0107_2031\\",
+    "_7base_input_data_dir": "D:\\phantomAI\\data\\synthesized_data\\testing\\2019_12_11__20_32_run_\\",
+    "base_input_data_dir": "D:\\phantomAI\\data\\synthesized_data\\testing\\2020_01_07__20_31_run\\",
     "results_dir":  "D:\\phantomAI\\results",
-    "model_name": "horizon_exit_merge",
-    "model_name_123": "resnet_horizon",
+    "model_name_h": "horizon_exit_merge",
+    "model_name___": "pointnet_cls",
+    "model_name_": "hybrid",
+    "model_name": "inception_v3",
     "train_backbone": true,
     "load_model": true,
-    "model_to_load": "C:\\work\\tmp\\phantom_results\\horizon_exit_merge\\train_2019_12_20__00_00\\2019_12_11__20_32_run_2019_12_20__00_00_nfltr8run_v_279.h5"
+    "model_to_load_g": "D:\\phantomAI\\results\\pointnet_cls\\train_2020_01_08__22_12\\2020_01_08__22_12_nfltr8run_v_35.h5",
+    "model_to_load_hi": "D:\\phantomAI\\results\\horizon_exit_merge\\train_2020_01_17__21_22\\2020_01_17__21_22_nfltr8run_v_5.h5",
+    "model_to_load__d": "D:\\phantomAI\\results\\hybrid\\train_2020_01_15__23_25\\2020_01_15__23_25_nfltr16run_v_4.h5",
+    "model_to_load": "D:\\phantomAI\\results\\inception_v3\\train_2020_01_21__20_37\\2020_01_21__20_37_nfltr8run_v_80.h5"
 }

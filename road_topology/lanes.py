@@ -2,7 +2,8 @@ import numpy as np
 import random as random
 from road_top_view_image.tv_image import TV_image
 from road_manifold.linear_road_model import LinearRoadModel
-from front_view_image.front_view_image import FVI_Factory
+from front_view_image.front_view_image_factory import FVI_Factory
+
 import copy
 import os
 from datetime import datetime
@@ -11,7 +12,13 @@ from tools.random_tools import get_rand_out_of_list_item, get_rand_range, get_ra
 from road_topology.lane_model import LaneModel
 import road_topology.exit_merge_builder as exit_merge_builder
 from road_topology.lane_mark import LaneMark
-
+# duplicated - also in lanes.py - pay attention if you change !!!
+SEG_IMG_DIMS = (512, 288)
+CROP_FULL_IMG = (0, 120, 1920, 1080)
+CROP_CROPPED_IMG = (704, 516, 512, 288)
+# duplicated - also in lanes.py - pay attention if you change !!!
+img_height_resize_factor = SEG_IMG_DIMS[1] / CROP_FULL_IMG[3]
+img_width_resize_factor = SEG_IMG_DIMS[0] / CROP_FULL_IMG[2]
 
 class LanesFactory:
     def __init__(self):
@@ -205,6 +212,9 @@ class LanesFactory:
                         host_lane_model=self.lane_models[self.host_lane_id])
         return line
 
+    def get_host_center_at_Z(self, Z):
+        return self.lane_models[self.host_lane_id].Z2X(Z)
+
     def get_lane_marks(self):
         self.shift_lanes_to_host()
         lane_marks = self.build_lane_marks()
@@ -315,7 +325,7 @@ class LanesFactory:
 
         return lane_marks
 
-    def dump_meta_data(self, top_view_image, front_view_image, filename):
+    def dump_meta_data(self, top_view_image, front_view_image, vehicles, filename):
         # make sure to update befor using
         dict_to_dump = dict()
 
@@ -350,10 +360,22 @@ class LanesFactory:
             dict_to_dump['front_view_image_x_center'] = front_view_image.x_center
             #  BOTTOM LINE:
             dict_to_dump['front_view_image_horizon'] = front_view_image.y_center
+            dict_to_dump['seg_cropped_horizon'] = front_view_image.y_center - CROP_CROPPED_IMG[1]
+            dict_to_dump['seg_resized_horizon'] = (front_view_image.y_center - CROP_FULL_IMG[1]) * img_height_resize_factor
+            x_center_host_in_100m, y_center_host_in_100m = front_view_image.XZ2xy(X=self.get_host_center_at_Z(100), Z=100)
+            dict_to_dump['x_center_host_in_100m'] = x_center_host_in_100m
+            dict_to_dump['y_center_host_in_100m'] = y_center_host_in_100m
+
+            dict_to_dump['seg_cropped_x_center_host_in_100m'] = x_center_host_in_100m - CROP_CROPPED_IMG[0]
+            dict_to_dump['seg_cropped_y_center_host_in_100m'] = y_center_host_in_100m - CROP_CROPPED_IMG[1]
+            dict_to_dump['seg_resized_x_center_host_in_100m'] = (x_center_host_in_100m - CROP_FULL_IMG[0]) * img_width_resize_factor
+            dict_to_dump['seg_resized_y_center_host_in_100m'] = (y_center_host_in_100m - CROP_FULL_IMG[1]) * img_height_resize_factor
+
             dict_to_dump['front_view_roll_rad'] = front_view_image.cam_roll
             dict_to_dump['exit_decision'] = front_view_image.exit_decision
             dict_to_dump['merge_decision'] = front_view_image.merge_decision
 
+            dict_to_dump['vehicles'] = front_view_image.dict_to_dump_vehicels()
         with open(filename, 'w') as fp:
             json.dump(dict_to_dump, fp)
 
@@ -481,6 +503,7 @@ if __name__ == "__main__":
         # vehicles.randomize(tvi, lrm)
         fvi = fvi_factory.draw_from_TV_image_and_linear_road_model(tvi, lrm)
         tvi.save(save_path=tvi_fp)
-        fvi.save(save_path=fvi_fp)
+        FV_point_center_host_in_100m = fvi.XZ2xy(X=lanes_factory.get_host_center_at_Z(100), Z=100)
+        fvi.save(save_path=fvi_fp, FV_point_center_host_in_100m=FV_point_center_host_in_100m)
         lanes_factory.dump_meta_data(tvi, fvi, md_fp)
         print("for the b point")

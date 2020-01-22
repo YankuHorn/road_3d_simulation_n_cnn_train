@@ -26,7 +26,63 @@ def type2idx(type):
         print("no index for this type yet:", type)
     return idx
 
-def type2color(type):
+def draw_horizon_cross(img, x_center, y_center, cam_roll=0, clr=[0, 0, 255]):
+    left_of_x_center_r = round(y_center - 30 * np.math.sin(cam_roll))
+    left_of_x_center_c = round(x_center - 30)
+    right_of_x_center_c = round(x_center + 30)
+    right_of_x_center_r = round(y_center + 30 * np.math.sin(cam_roll))
+    draw_line2(img, left_of_x_center_r, left_of_x_center_c,
+               right_of_x_center_r, right_of_x_center_c, clr=clr, width=2)
+    top_y_center_r = round(y_center + 10)
+    top_y_center_c = round(x_center)
+    bot_y_center_r = round(y_center - 10)
+    bot_y_center_c = round(x_center)
+    draw_line2(img, top_y_center_r, top_y_center_c,
+               bot_y_center_r, bot_y_center_c, clr=clr, width=5)
+    return img
+
+
+def seg_img2clr_img(seg_img):
+
+    clr_image = np.zeros(shape=(seg_img.shape[0], seg_img.shape[1], 3), dtype=np.uint8)
+
+    solid_indices = np.where(seg_img[:, :] == type_name2type_idx('solid'))
+    dashed_indices = np.where(seg_img[:, :] == type_name2type_idx('dashed'))
+    vcl_indices = np.where(seg_img[:, :] == type_name2type_idx('vehicle'))
+    clr_image[solid_indices[0], solid_indices[1]] = type_name2color('solid')
+    clr_image[dashed_indices[0], dashed_indices[1]] = type_name2color('dashed')
+    clr_image[vcl_indices[0], vcl_indices[1]] = type_name2color('vehicle')
+    return clr_image
+
+
+def keep_indices_in_seg_img(seg_img, indices_list):
+
+    img2keep = np.zeros(shape=seg_img.shape, dtype=np.uint8)
+    for obj_idx in indices_list:
+        img_indices = np.where(seg_img[:, :] == obj_idx)
+        img2keep[img_indices[0], img_indices[1]] = obj_idx
+
+    return img2keep
+
+
+def type_name2type_idx(type):
+    """
+    # pay attention - the first channel ('R', indexed 0) should be unique per type!!!
+    """
+
+    type_idx = None
+    if type == 'solid':
+        type_idx = 3
+    elif type == 'dashed':
+        type_idx = 4
+    elif type == 'vehicle':
+        type_idx = 8
+    else:
+        print("no color for this type yet:", type)
+    return type_idx
+
+
+def type_name2color(type):
     """
     # pay attention - the first channel ('R', indexed 0) should be unique per type!!!
     """
@@ -41,6 +97,57 @@ def type2color(type):
     else:
         print("no color for this type yet:", type)
     return color
+
+
+def type_idx2color(type):
+    """
+    # pay attention - the first channel ('R', indexed 0) should be unique per type!!!
+    """
+
+    color = [0, 0, 0]
+    if type == 3:
+        color = [1, 255, 255]
+    elif type == 4:
+        color = [253, 255, 0]
+    elif type == 8:
+        color = [252, 0, 255]
+    else:
+        print("no color for this type yet:", type)
+    return color
+
+
+def color2type_name(color):
+    """
+    # pay attention - the first channel ('R', indexed 0) should be unique per type!!!
+    """
+
+    type = None
+    if np.all(color == [1, 255, 255]):
+        type = 'solid'
+    elif np.all(color == [253, 255, 0]):
+        type = 'dashed'
+    elif np.all(color == [252, 0, 255]):
+        type = 'vehicle'
+    else:
+        print("no type for this color yet:", color)
+    return type
+
+
+def color2type_idx(color):
+    """
+    # pay attention - the first channel ('R', indexed 0) should be unique per type!!!
+    """
+
+    type = None
+    if np.all(color == [1, 255, 255]):
+        type = 3
+    elif np.all(color == [253, 255, 0]):
+        type = 4
+    elif np.all(color == [252, 0, 255]):
+        type = 8
+    else:
+        print("no type for this color yet:", color)
+    return type
 
 import copy
 

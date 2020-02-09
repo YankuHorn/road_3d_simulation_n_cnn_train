@@ -21,7 +21,7 @@ from keras.layers import Input, Flatten, Dense # , Lambda
 #                        pool_size=(2, 2), filters_init_num=4, output_mode="softmax")
 
 
-def my_hybrid_network(input_shape=(288, 50, 5), filters_init_num=16,
+def my_hybrid_network(input_shape=(288, 70, 5), filters_init_num=16,
                                    data_format="channels_last", train_backbone=True):
 
     inputs = Input(shape=input_shape)
@@ -32,7 +32,7 @@ def my_hybrid_network(input_shape=(288, 50, 5), filters_init_num=16,
 
     # encoder
     conv_1 = Convolution2D(filters_num, (kernel_h, kernel_w), padding="same", data_format=data_format, name='conv_2d_1',
-                            trainable=train_backbone)(inputs)
+                            trainable=train_backbone)(inputs[0])
     conv_1 = BatchNormalization(trainable=train_backbone, name='batch_normalization_1')(conv_1)
     conv_1 = Activation("relu")(conv_1)
 
@@ -106,7 +106,7 @@ def my_hybrid_network(input_shape=(288, 50, 5), filters_init_num=16,
     # # Classification
     flatten = Flatten()(concat_5)
     # fcm1 = Dense(819, activation='relu', name='fcn1_819')(flatten)
-    fc0 = Dense(273, activation='relu', name='fc0_273_')(flatten)
+    fc0 = Dense(273, activation='relu', name='fc0_273_70')(flatten)
     fc1 = Dense(81, activation='relu', name='fc1_81')(fc0)
     fc2 = Dense(27, activation='relu', name='fc2_27')(fc1)
     fc3 = Dense(9, activation='relu', name='fc3_9')(fc2)

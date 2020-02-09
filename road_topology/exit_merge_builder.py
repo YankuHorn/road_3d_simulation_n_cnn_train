@@ -46,10 +46,10 @@ def get_zero2one_unmarked_V(lanes_factory):
     dist2V = calc_Z_intersection_1_becomes_larget_than_2(exit_model_left, right_most_line_model,
                                                          min_val=lanes_factory.is_exit_beg_position,
                                                          max_val=lanes_factory.is_exit_beg_position+200)
-    print("dist2V", dist2V)
+    # print("dist2V", dist2V)
     if dist2V is None:
-        print("problem here with dist2v")
-        return None
+        # print("problem here with dist2v")
+        return None, None
     rmlm_z_ranges = [[lanes_factory.lane_marks_mark_z_ranges[idx][0], lanes_factory.is_exit_beg_position],
                      [dist2V, lanes_factory.lane_marks_mark_z_ranges[idx][1]]]
     lane_models = [right_most_line_model, right_most_line_model]
@@ -83,7 +83,7 @@ def get_zero2one_unmarked_V(lanes_factory):
     right_most_lines.append(exit_lane_left_solid)
     right_most_lines.append(exit_lane_right_solid)
 
-    return right_most_lines
+    return right_most_lines, dist2V
 
 
 def get_one2one_dashed2solid2Y(lanes_factory):
@@ -108,10 +108,9 @@ def get_one2one_dashed2solid2Y(lanes_factory):
     dist2V = calc_Z_intersection_1_becomes_larget_than_2(exit_model_left, right_most_line_model,
                                                          min_val=lanes_factory.is_exit_beg_position ,
                                                          max_val=lanes_factory.is_exit_beg_position + 200)
-    print("dist2V", dist2V)
     if dist2V is None:
         print("problem here with dist2v")
-        return None
+        return None, None
     dashed_dist = get_rand_range(0, 50)
 
     rmlm_z_ranges = [[lanes_factory.lane_marks_mark_z_ranges[idx][0], dist2V - dashed_dist],
@@ -150,7 +149,7 @@ def get_one2one_dashed2solid2Y(lanes_factory):
 
     right_most_lines.append(exit_lane_left_solid)
     right_most_lines.append(exit_lane_right_solid)
-    return right_most_lines
+    return right_most_lines, dist2V
 
 
 def get_one2zero_unmarked_V_merge(lanes_factory):
@@ -175,7 +174,7 @@ def get_one2zero_unmarked_V_merge(lanes_factory):
     dist2V = calc_Z_intersection_1_becomes_larget_than_2(right_most_line_model, merge_model_left,
                                                          min_val=lanes_factory.is_merge_beg_position - 300,
                                                          max_val=lanes_factory.is_merge_beg_position)
-    print("dist2V", dist2V)
+    # print("dist2V", dist2V)
     if dist2V is None:
         rmlm_z_ranges = [[lanes_factory.lane_marks_mark_z_ranges[idx][0], lanes_factory.lane_marks_mark_z_ranges[idx][1]]]
         lane_models = [right_most_line_model]
@@ -216,7 +215,7 @@ def get_one2zero_unmarked_V_merge(lanes_factory):
         right_most_lines.append(merge_lane_left_solid)
         right_most_lines.append(merge_lane_right_solid)
 
-    return right_most_lines
+    return right_most_lines, dist2V
 
 
 # elif self.is_exit_split_type == 'one2two_unmarked_V':

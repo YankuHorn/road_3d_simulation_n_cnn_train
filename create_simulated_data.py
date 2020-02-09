@@ -34,7 +34,8 @@ if __name__ == "__main__":
     except:
         print("something went wrong - unable to create the directories in ", dir_path)
         pass
-    for i in range(20000):
+    num_images = 20000
+    for i in range(num_images):
         dt_string = datetime.now().strftime("%Y_%m_%d__%H_%M_%S_%f")[:-3]
         fvi_filename = "front_view_image_" + dt_string + ".png"
         drawed_points_fvi_filename = "drawed_points_" + dt_string
@@ -74,7 +75,7 @@ if __name__ == "__main__":
         tvi.draw_lines(lines)
         tvi_v = copy.deepcopy(tvi)
 
-        add_vehicels = get_rand_out_of_list_item([True, False], objects_weights=[0.8, 0.2])
+        add_vehicels = get_rand_out_of_list_item([True, False], objects_weights=[0.9, 0.1])
         if add_vehicels:
             vcls = Vehicles(num_lanes=lanes_factory.num_total_lanes)
             tvi_v.draw_vehicles(vcls, lanes_factory.lane_models)
@@ -93,16 +94,16 @@ if __name__ == "__main__":
 
         x_center = get_rand_range(959-center_possible_yaw_pixels, 959+center_possible_yaw_pixels)
         y_center = get_rand_range(603-center_possible_pitch_pixels, 603+center_possible_pitch_pixels)
-        print("x_center", x_center, "y_center", y_center,
-              "    possible yaw, pitch pixels", center_possible_yaw_pixels, center_possible_pitch_pixels)
-        fvi_factory = FVI_Factory(width_pix=1208, height_pix=1920,
+        # print("x_center", x_center, "y_center", y_center,
+        #       "    possible yaw, pitch pixels", center_possible_yaw_pixels, center_possible_pitch_pixels)
+        fvi_factory = FVI_Factory(width_pix=1280, height_pix=1920,
                                   focal_length=focal_length, camera_height=camera_height,
                                   x_center=x_center, y_center=y_center)
 
         fvi = fvi_factory.draw_from_TV_image_and_linear_road_model(tvi, lrm)
         if add_vehicels:
             fvi.draw_vehicles(vcls, lanes_factory.lane_models)
-        fvi.calc_exit_merge()
+        # fvi.calc_exit_merge()
         tvi.save(save_path=tvi_fp)
         tvi_v.save(save_path=tvi_v_fp)
         FV_point_center_host_in_100m = fvi.XZ2xy(X=lanes_factory.get_host_center_at_Z(100), Z=100)
@@ -115,5 +116,5 @@ if __name__ == "__main__":
 
             # ,
             #                 csv_objs_save_path=csv_filename, csv_crop_objs_save_path=csv_crop_filename)
-        lanes_factory.dump_meta_data(tvi, fvi, vcls, md_fp)
-        print("for the b point")
+        lanes_factory.dump_meta_data(tvi, fvi, md_fp)
+        print("i", i, "out of ", num_images)

@@ -92,6 +92,8 @@ def my_horizon_scene_class_network(
     fc1 = Dense(81, activation='relu')(flatten)
     fc2 = Dense(27, activation='relu')(fc1)
     fc3 = Dense(9, activation='relu')(fc2)
+    # fc3_ = Dense(9, activation='relu')(fc3)
+    # fc3__ = Dense(9, activation='relu')(fc3_)
     # fc4 = Dense(3, activation='relu')(fc3)
     scene_class = Dense(3, activation='softmax', name='scene_class')(fc3)
     # finding horizon (segmentation)

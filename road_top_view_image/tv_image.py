@@ -95,6 +95,10 @@ class TV_image:
                 for X in frange(X_center - half_width, X_center + half_width, self.pixel_width):
                     m, n = self.XZ2mn(X, Z)
                     color = type_name2color(line.solidashed_types[i])
+                    if line.is_exit[i]:
+                        color = type_name2color('solid_exit')
+                    if line.is_merge[i]:
+                        color = type_name2color('solid_merge')
                     if m is not None:
                         self.img[n, m] = np.asarray(color)
                         self.exit_merge_points[n, m] = [line.is_exit[i], line.is_merge[i]]

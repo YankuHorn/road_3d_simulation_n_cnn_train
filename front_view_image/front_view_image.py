@@ -31,22 +31,24 @@ class FV_image:
         self.camH = camera_height
         self.fl = focal_length
 
+        self.one_over_img_w = 1.0 / self.img_w
+        self.one_over_img_h = 1.0 / self.img_h
         self.x_center = x_center
         self.y_center = y_center
 
         self.vehicles = list()
 
-        self.vcls_lines = list()
+        # self.vcls_lines = list()
         self.cam_roll = cam_roll
 
-        self.exit_points = list()
-        self.merge_points = list()
-        self.drawed_points = list()
-        self.exit_decision = "no_exit"
-        self.merge_decision = "no_merge"
+        # self.exit_points = list()
+        # self.merge_points = list()
+        # self.drawed_points = list()
+        # self.exit_decision = "no_exit"
+        # self.merge_decision = "no_merge"
         # for dumping later
         self.vcl_centers_x = list()
-        self.vcl_centers_y = list()
+        self.vcl_centers_bottom_y = list()
         self.vcl_widths = list()
         self.vcl_heights = list()
     @staticmethod
@@ -161,27 +163,30 @@ class FV_image:
         x_rb, y_rb = self.XYZ2xy(X_r, Y_bottom, Z)
         x_lt, y_lt = self.XYZ2xy(X_l, Y=top_of_vehicle_height, Z=Z)
         x_rt, y_rt = self.XYZ2xy(X_r, Y=top_of_vehicle_height, Z=Z)
-
+        # if (x_lb is None) or (x_rb is None) or (x_lt is None) or (x_rt is None):
+        #     print("something is none")
+        # if (y_lb is None) or (y_rb is None) or (y_lt is None) or (y_rt is None):
+        #     print("something is none")
         # save for meta-data:
-        self.vcl_centers_x.append((x_lb + x_rb + x_lt + x_rt) / (4.0 * self.img_w))
-        self.vcl_centers_y.append((y_lb + y_rb + y_lt + y_rt) / (4.0 * self.img_w))
-        left_av = np.mean(y_lb, y_lt)
-        right_av = np.mean(y_rb, y_rt)
-        top_av = np.mean(y_lt, y_rt)
-        bottom_av = np.mean(y_rb + y_lb)
-
-        self.vcl_widths.append( ( left_av - right_av) / self.img_w )
-        self.vcl_heights.append( ( bottom_av - top_av) / self.img_h )
 
         color = type_name2color('vehicle')
         if (x_lb is not None) and (x_rb is not None) and (x_lt is not None) and (x_rt is not None):
             self.img = draw_rect(self.img, y_lb, x_lb, y_rt, x_rt, color, fill_clr=[0, 0, 0], width=8)
-            self.remove_exit_points(x_lb, x_rb, y_lt, y_lb)
-            self.remove_merge_points(x_lb, x_rb, y_lt, y_lb)
+            # self.remove_exit_points(x_lb, x_rb, y_lt, y_lb)
+            # self.remove_merge_points(x_lb, x_rb, y_lt, y_lb)
+
+            left_av = np.mean([x_lb, x_lt])
+            right_av = np.mean([x_rb, x_rt])
+            top_av = np.mean([y_lt, y_rt])
+            bottom_av = np.mean([y_rb, y_lb])
+            self.vcl_centers_x.append((x_lb + x_rb + x_lt + x_rt) * self.one_over_img_w * 0.25)
+            self.vcl_centers_bottom_y.append(bottom_av * self.one_over_img_h)
+            self.vcl_widths.append((right_av - left_av) * self.one_over_img_w)
+            self.vcl_heights.append((bottom_av - top_av) * self.one_over_img_h)
 
         # ['#', 'ID', 'class_name', 'box_valid', 'x', 'y', 'width', 'height', 'rear_valid', 'x', 'y', 'width', 'height']
-        vcl_line = [vcl.ID, 'vehicle', 0, 0 , 0 ,0, 0, 1, x_lt, y_lt, visible_width, vcl_height]
-        self.vcls_lines.append(vcl_line)
+        # vcl_line = [vcl.ID, 'vehicle', 0, 0 , 0 ,0, 0, 1, x_lt, y_lt, visible_width, vcl_height]
+        # self.vcls_lines.append(vcl_line)
 
     def draw_exit(self):
         if self.exit_decision == "is_exit":
@@ -290,24 +295,30 @@ class FV_image:
 
         # np.save(points_list_save_path, self.drawed_points)
         self.draw_horizon_cross(FV_point_center_host_in_100m)
-        self.draw_exit()
-        self.draw_merge()
-        self.dict_to_dump_vehicels()
+        # self.draw_exit()
+        # self.draw_merge()
+        #self.dict_to_dump_vehicels()
         cv2.imwrite(save_path, self.img)
 
-    def dict_to_dump_vehicles(self):
+    def vcls_on_fvi_list(self):
 
-        self.vcl_centers_x = list()
-        self.vcl_centers_y = list()
-        self.vcl_widths = list()
-        self.vcl_heights = list()
-        dicts_to_dump = list()
+        # self.vcl_centers_x = list()
+        # self.vcl_centers_y = list()
+        # self.vcl_widths = list()
+        # self.vcl_heights = list()
 
-        for vcl_idx in range(len(self.vcl_centers_x)):
-            unique_str = str('vcl_id_') + str(vcl_idx)
-            dicts_to_dump[unique_str] = dict()
-
-
+        # for vcl_idx in range(len(self.vcl_centers_x)):
+        #     self.vcl_centers_x.append(self.vcl_centers_x)
+        #     self.vcl_centers_y.append(self.vcl_centers_y)
+        #     self.vcl_widths.append(self.vcl_widths)
+        #     self.vcl_heights.append(self.vcl_heights)
+        #
+        # self.dict_to_dump = dict()
+        # self.dict_to_dump['front_view_vehicles_center_x'] = self.vcl_centers_x
+        # self.dict_to_dump['front_view_vehicles_center_y'] = self.vcl_centers_y
+        # self.dict_to_dump['front_view_vehicles_width'] = self.vcl_widths
+        # self.dict_to_dump['front_view_vehicles_height'] = self.vcl_heights
+        return [self.vcl_centers_x, self.vcl_centers_bottom_y, self.vcl_widths, self.vcl_heights]
 
 
     def save_seg_images(self, seg_img_save_path, cropped_img_save_path,

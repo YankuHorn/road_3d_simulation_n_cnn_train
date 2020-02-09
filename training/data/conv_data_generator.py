@@ -126,21 +126,21 @@ class conv_DataGenerator(keras.utils.Sequence):
             else:
                 print("unknown image type name {:}".format(img_type))
             #
-            res_dict['horizon'] = json_data[horizon_key] * one_over_img_height
+            # res_dict['horizon'] = json_data[horizon_key] * one_over_img_height
             # res_dict['host_yaw_at_100m'] = json_data['seg_resized_x_center_host_in_100m'] * one_over_img_width
-            # res_dict['horizon'] = (json_data['seg_resized_y_center_host_in_100m'] * one_over_img_height) #  - 120) * one_over_orig_cropped_for_resize_img_height
+            res_dict['horizon'] = (json_data['seg_resized_y_center_host_in_100m'] * one_over_img_height) #  - 120) * one_over_orig_cropped_for_resize_img_height
             # res_dict['horizon'] = (json_data['front_view_image_horizon'] - 120) * one_over_orig_cropped_for_resize_img_height
             # print("XXX",label_ID,"  ", res_dict['horizon'])
-            if json_data['exit_decision'] == 'is_exit':
-                res_dict['scene_class'] = [0., 1., 0.]
-            elif json_data['merge_decision'] == 'is_merge':
-                res_dict['scene_class'] = [0., 0., 1.]
-            elif (json_data['exit_decision'] == 'no_exit') and (json_data['merge_decision'] == 'no_merge'):
-                res_dict['scene_class'] = [1., 0., 0.]
-            elif (json_data['exit_decision'] == 'dont_care') or (json_data['merge_decision'] == 'dont_care'):
-                res_dict['scene_class'] = [0.334, 0.333, 0.333]
-            else:
-                print('no proper exit_decision {:} and merge decision {:}', json_data['exit_decision'], json_data['merge_decision'])
+            # if json_data['exit_decision'] == 'is_exit':
+            #     res_dict['scene_class'] = [0., 1., 0.]
+            # elif json_data['merge_decision'] == 'is_merge':
+            #     res_dict['scene_class'] = [0., 0., 1.]
+            # elif (json_data['exit_decision'] == 'no_exit') and (json_data['merge_decision'] == 'no_merge'):
+            #     res_dict['scene_class'] = [1., 0., 0.]
+            # elif (json_data['exit_decision'] == 'dont_care') or (json_data['merge_decision'] == 'dont_care'):
+            res_dict['scene_class'] = [0.334, 0.333, 0.333]
+            # else:
+            #     print('no proper exit_decision {:} and merge decision {:}', json_data['exit_decision'], json_data['merge_decision'])
 
         return res_dict
 
@@ -180,7 +180,7 @@ class conv_DataGenerator(keras.utils.Sequence):
             file_fn = os.path.join(self.data_dir, ID)
             if not os.path.isfile(file_fn):
                 print("something is wrong - this is not a file", file_fn)
-            cropped = bool(random.getrandbits(1))
+            cropped = False  # bool(random.getrandbits(1))
             if cropped:
                 seg_img_ID = ID.replace("front_view_image", "seg_crop_front_view_image")
                 img_type = 'seg_cropped'

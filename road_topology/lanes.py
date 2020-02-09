@@ -34,7 +34,7 @@ class LanesFactory:
         # z_range_beg_host = [0, 20]
         # self.lines_mark_z_ranges[0] = np.stack((get_rand_range(0, 20), get_rand_range(100, 150))).T
         self.lane_marks_mark_z_ranges = np.stack((get_rand_range(0, 10, num_items=self.num_lane_marks),
-                                                  get_rand_range(100, 150, num_items=self.num_lane_marks))).T
+                                                  get_rand_range(50, 120, num_items=self.num_lane_marks))).T
 
         self.lane_model_Z_positions = np.asarray([-100, 0, 100, 150, 200])
         self.num_Z_points = len(self.lane_model_Z_positions)
@@ -44,7 +44,7 @@ class LanesFactory:
         self.lane_model_X_positions[0] = -self.lane_model_X_deltas[1]
         # self.lane_model_X_positions[0] = self.lane_model_X_positions[1] - self.lane_model_X_deltas[0]
         self.points = np.stack((self.lane_model_Z_positions, self.lane_model_X_positions)).T
-        print("main lane points", self.points)
+        # print("main lane points", self.points)
         self.lane_models = list()
         # self.host_lane_model_yaw_rad = self.host_lane_model_yaw_deg * np.pi / 180
         # self.is_exit_split_type = "zero2one_unmarked_V" #  "get_rand_list_item(["one2zero_unmarked_V_merge"])  # ,   "one2one_dashed2solid2Y" ])
@@ -300,7 +300,7 @@ class LanesFactory:
         #     lane_mark_id += 1
         #     solidashed = 'dashed'  # after the first one it's dashed
         # build all lane_marks except for the main road rightmost lane:
-
+        dist2v = None
         for i in range(1, self.num_lane_marks):
             line = self.build_main_road_line(i)
             if line is not None:
@@ -313,19 +313,20 @@ class LanesFactory:
                 right_most_lines.append(right_most_solid_lane_mark)
         elif self.is_exit_split_type == "zero2one_unmarked_V":
             # first we make some calculations about the exit model:
-            right_most_lines = exit_merge_builder.get_zero2one_unmarked_V(self)
+            right_most_lines, dist2v = exit_merge_builder.get_zero2one_unmarked_V(self)
         elif self.is_exit_split_type == 'one2one_dashed2solid2Y':
-            right_most_lines = exit_merge_builder.get_one2one_dashed2solid2Y(self)
+            right_most_lines, dist2v = exit_merge_builder.get_one2one_dashed2solid2Y(self)
         elif self.is_exit_split_type == 'one2zero_unmarked_V_merge':
-            right_most_lines = exit_merge_builder.get_one2zero_unmarked_V_merge(self)
+            right_most_lines, dist2v = exit_merge_builder.get_one2zero_unmarked_V_merge(self)
         if right_most_lines is None:
+            print('failed - exit_split_type{:}'.format(self.is_exit_split_type))
             return None
             # print('right_most_lines is None')
         lane_marks.extend(right_most_lines)
-
+        print('exit_split_type is: {:} with dist2V = {:}'.format(self.is_exit_split_type, dist2v))
         return lane_marks
 
-    def dump_meta_data(self, top_view_image, front_view_image, vehicles, filename):
+    def dump_meta_data(self, top_view_image, front_view_image, filename):
         # make sure to update befor using
         dict_to_dump = dict()
 
@@ -355,6 +356,7 @@ class LanesFactory:
             dict_to_dump['top_view_img_pixel_width_meters'] = top_view_image.pixel_width
             dict_to_dump['top_view_img_pixel_height_meters'] = top_view_image.pixel_height
         if front_view_image is not None:
+            # dict_to_dump['front_view_vehicle_data'] = front_view_image.vcls_on_fvi_list()
             dict_to_dump['front_view_image_camera_height'] = front_view_image.camH
             dict_to_dump['front_view_image_focal_length'] = front_view_image.fl
             dict_to_dump['front_view_image_x_center'] = front_view_image.x_center
@@ -372,10 +374,16 @@ class LanesFactory:
             dict_to_dump['seg_resized_y_center_host_in_100m'] = (y_center_host_in_100m - CROP_FULL_IMG[1]) * img_height_resize_factor
 
             dict_to_dump['front_view_roll_rad'] = front_view_image.cam_roll
-            dict_to_dump['exit_decision'] = front_view_image.exit_decision
-            dict_to_dump['merge_decision'] = front_view_image.merge_decision
+            # dict_to_dump['exit_decision'] = front_view_image.exit_decision
+            # dict_to_dump['merge_decision'] = front_view_image.merge_decision
 
-            dict_to_dump['vehicles'] = front_view_image.dict_to_dump_vehicels()
+            [xs, ys, ws, hs] = front_view_image.vcls_on_fvi_list()
+
+            dict_to_dump['vehicles_center_xs'] = xs
+            dict_to_dump['vehicles_center_bottom_ys'] = ys
+            dict_to_dump['vehicles_widths'] = ws
+            dict_to_dump['vehicles_heights'] = hs
+
         with open(filename, 'w') as fp:
             json.dump(dict_to_dump, fp)
 
@@ -506,4 +514,4 @@ if __name__ == "__main__":
         FV_point_center_host_in_100m = fvi.XZ2xy(X=lanes_factory.get_host_center_at_Z(100), Z=100)
         fvi.save(save_path=fvi_fp, FV_point_center_host_in_100m=FV_point_center_host_in_100m)
         lanes_factory.dump_meta_data(tvi, fvi, md_fp)
-        print("for the b point")
+        # print("for the b point")

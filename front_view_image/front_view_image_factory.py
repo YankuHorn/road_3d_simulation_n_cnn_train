@@ -134,12 +134,12 @@ class FVI_Factory:
                     x, y = tv_image.XZ2mn(X, Z)
                     if x is not None and y is not None:
                         [exit_p, merge_p] = tv_image.exit_merge_points[y, x]
-                        if exit_p:
-                            FVI.exit_points.append([i, j])
-                        if merge_p:
-                            FVI.merge_points.append([i, j])
+                        # if exit_p:
+                        #     FVI.exit_points.append([i, j])
+                        # if merge_p:
+                        #     FVI.merge_points.append([i, j])
 
                         FVI.set_pixel(i, j, tv_image.img[y, x])
-                        if not (np.all(tv_image.img[y, x] == [0, 0, 0])):
-                            FVI.drawed_points.append([i, j, color2type_idx(tv_image.img[y, x])])
+                        # if not (np.all(tv_image.img[y, x] == [0, 0, 0])):
+                        #     FVI.drawed_points.append([i, j, color2type_idx(tv_image.img[y, x])])
         return FVI

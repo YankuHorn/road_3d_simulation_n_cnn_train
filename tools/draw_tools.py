@@ -1,6 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+solid_color = [1, 255, 255]
+solid_exit_color = [3, 255, 128]
+solid_merge_color = [3, 128, 255]
+dashed_color = [253, 255, 0]
+vcl_color = [252, 0, 255]
+
 def idx2type(idx):
     if idx == 3:
         type = 'solid'
@@ -9,7 +15,7 @@ def idx2type(idx):
     elif idx == 8:
         type = 'vehicle'
     else:
-        print("no type for this idx yet:", idx)
+        print("idx2type: no type for this idx yet:", idx)
     return type
 
 
@@ -23,7 +29,7 @@ def type2idx(type):
     elif type == 'vehicle':
         idx = 8
     else:
-        print("no index for this type yet:", type)
+        print("type2idx: no index for this type yet:", type)
     return idx
 
 def draw_horizon_cross(img, x_center, y_center, cam_roll=0, clr=[0, 0, 255]):
@@ -32,7 +38,7 @@ def draw_horizon_cross(img, x_center, y_center, cam_roll=0, clr=[0, 0, 255]):
     right_of_x_center_c = round(x_center + 30)
     right_of_x_center_r = round(y_center + 30 * np.math.sin(cam_roll))
     draw_line2(img, left_of_x_center_r, left_of_x_center_c,
-               right_of_x_center_r, right_of_x_center_c, clr=clr, width=2)
+               right_of_x_center_r, right_of_x_center_c, clr=clr, width=5)
     top_y_center_r = round(y_center + 10)
     top_y_center_c = round(x_center)
     bot_y_center_r = round(y_center - 10)
@@ -78,7 +84,7 @@ def type_name2type_idx(type):
     elif type == 'vehicle':
         type_idx = 8
     else:
-        print("no color for this type yet:", type)
+        pass
     return type_idx
 
 
@@ -86,16 +92,19 @@ def type_name2color(type):
     """
     # pay attention - the first channel ('R', indexed 0) should be unique per type!!!
     """
-
     color = [0, 0, 0]
     if type == 'solid':
-        color = [1, 255, 255]
+        color = solid_color
+    elif type =='solid_exit':
+        color = solid_exit_color
+    elif type =='solid_merge':
+        color = solid_merge_color
     elif type == 'dashed':
-        color = [253, 255, 0]
+        color = dashed_color
     elif type == 'vehicle':
-        color = [252, 0, 255]
+        color = vcl_color
     else:
-        print("no color for this type yet:", type)
+        print("type_name2color: no color for this type yet:", type)
     return color
 
 
@@ -106,13 +115,13 @@ def type_idx2color(type):
 
     color = [0, 0, 0]
     if type == 3:
-        color = [1, 255, 255]
+        color = solid_color
     elif type == 4:
-        color = [253, 255, 0]
+        color = dashed_color
     elif type == 8:
-        color = [252, 0, 255]
+        color = vcl_color
     else:
-        print("no color for this type yet:", type)
+        print("type_idx2color: no color for this idx yet:", type)
     return color
 
 
@@ -120,13 +129,16 @@ def color2type_name(color):
     """
     # pay attention - the first channel ('R', indexed 0) should be unique per type!!!
     """
-
     type = None
-    if np.all(color == [1, 255, 255]):
+    if np.all(color == solid_color):
         type = 'solid'
-    elif np.all(color == [253, 255, 0]):
+    if np.all(color == solid_exit_color):
+        type = 'solid_exit'
+    if np.all(color == solid_merge_color):
+        type = 'solid_merge'
+    elif np.all(color == dashed_color):
         type = 'dashed'
-    elif np.all(color == [252, 0, 255]):
+    elif np.all(color == vcl_color):
         type = 'vehicle'
     else:
         print("no type for this color yet:", color)
@@ -139,11 +151,15 @@ def color2type_idx(color):
     """
 
     type = None
-    if np.all(color == [1, 255, 255]):
+    if np.all(color == solid_color):
         type = 3
-    elif np.all(color == [253, 255, 0]):
+    elif np.all(color == solid_exit_color):
+        type = 3
+    elif np.all(color == solid_merge_color):
+        type = 3
+    elif np.all(color == dashed_color):
         type = 4
-    elif np.all(color == [252, 0, 255]):
+    elif np.all(color == vcl_color):
         type = 8
     else:
         print("no type for this color yet:", color)

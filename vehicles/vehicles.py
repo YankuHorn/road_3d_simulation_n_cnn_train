@@ -7,8 +7,8 @@ import random
 vehicle_class_size_ranges = dict()
 
 vehicle_class_size_ranges['mini'] = {'width': [1.6, 1.7], 'height': [1.4, 1.6], 'length': [4.0, 4.3]}
-vehicle_class_size_ranges['sedan'] = {'width': [1.7, 1.9], 'height': [1.4, 1.6], 'length': [4.1, 4.5]}
-vehicle_class_size_ranges['suv'] = {'width': [1.7, 2.0], 'height': [1.55, 2.2], 'length': [4.0, 4.8]}
+vehicle_class_size_ranges['sedan'] = {'width': [1.7, 1.9], 'height': [1.4, 1.8], 'length': [4.1, 4.5]}
+vehicle_class_size_ranges['suv'] = {'width': [1.7, 2.2], 'height': [1.55, 2.4], 'length': [4.0, 4.8]}
 vehicle_class_size_ranges['truck'] = {'width': [2.1, 2.5], 'height': [2.5, 3.0], 'length': [7.0, 14.0]}
 vehicle_class_size_ranges['bus'] = {'width': [2.2, 2.6], 'height': [2.2, 3.3], 'length': [7.0, 11.0]}
 

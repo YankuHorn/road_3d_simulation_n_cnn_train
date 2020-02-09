@@ -326,6 +326,7 @@ def InceptionV3(include_top=True,
 
     return x
 
+
 def My_inception(input_shape,
                 n_labels_scene_class,
                 kernel,
@@ -347,10 +348,10 @@ def My_inception(input_shape,
     fc1 = Dense(81, activation='relu', name='fc1_81_0114')(gap)
     fc2 = Dense(27, activation='relu', name='fc2_27')(fc1)
     fc3 = Dense(9, activation='relu', name='fc3_9')(fc2)
-    # fc4 = Dense(3, activation='relu')(fc3)
+    fc4 = Dense(9, activation='relu')(fc3)
     scene_class = Dense(3, activation='softmax', name='scene_class')(fc3)
     # finding horizon (segmentation)
-    horizon = Dense(1, activation='linear', name='horizon')(fc3)
+    horizon = Dense(1, activation='linear', name='horizon')(fc4)
     # host_yaw_at_100m = Dense(1, activation='linear', name='host_yaw_at_100m')(fc3)
     # print("horizon shape", horizon.shape, "host_yaw_at_100m", host_yaw_at_100m, "scene_class shape", scene_class.shape)
     print("horizon shape", horizon.shape, "scene_class shape", scene_class.shape)

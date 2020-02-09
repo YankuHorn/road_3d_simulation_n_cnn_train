@@ -41,8 +41,8 @@ def get_best_loss_in_logs():
                                     best_loss_train = train_loss
                                     best_loss_train_model_name = model_version
                                     best_loss_train_idx = idx
-            print("best loss val for", model_name, " is: ", best_loss_val, "best_loss_val_model_name", best_loss_val_model_name, best_loss_val_idx)
-            print("best loss train for", model_name, " is: ", best_loss_train, "best_loss_train_model_name", best_loss_train_model_name, best_loss_train_idx)
+            print(best_loss_val, "best loss val for", model_name, " is: ", "best_loss_val_model_name", best_loss_val_model_name, best_loss_val_idx)
+            # print("best loss train for", model_name, " is: ", best_loss_train, "best_loss_train_model_name", best_loss_train_model_name, best_loss_train_idx)
 
 
 if __name__ == '__main__':

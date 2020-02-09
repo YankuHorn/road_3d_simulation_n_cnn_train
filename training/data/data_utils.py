@@ -13,11 +13,41 @@ one_over_img_width = 1.0 / IMG_WIDTH
 
 def img2hybrid_single_example_batch(img, num_columns=50):
     img_l = list(img)
-    img_h_l = img2_hybrid_points(img, num_columns=50)
+    img_h_l = img2_hybrid_points(img, num_columns=70)
     return img_h_l[0]
 
 
-def img2_hybrid_points(img, num_columns=50, num_channels=3):
+def img2_new_hybrid(img, num_columns=70):
+
+    lanes_img = np.zeros_like(img)
+    lanes_img[img == 4] = 4
+    lanes_img[img == 3] = 3
+    lanes_non_z_img = np.nonzero(lanes_img)
+
+    reduced_img_lanes = np.zeros((img.shape[0], num_columns))
+    indices_img_lanes = np.zeros((img.shape[0], num_columns))
+
+    lined_indices = np.zeros((img.shape[0], num_columns))
+    half_columns = num_columns // 2
+
+    for i in range(img.shape[0]):
+        non_z_lanes_xx = np.nonzero(lanes_non_z_img[0] == i)
+        num_col_lanes = min(num_columns, len(non_z_lanes_xx[0]))
+        beg_idx_lanes = half_columns - (num_col_lanes // 2)
+        end_idx_lanes = beg_idx_lanes + len(lanes_non_z_img[1][non_z_lanes_xx[0][:num_col_lanes]])
+        reduced_img_lanes[i, beg_idx_lanes:end_idx_lanes] = img[i, lanes_non_z_img[1][non_z_lanes_xx[0][:num_col_lanes]]]
+
+        indices_img_lanes[i, beg_idx_lanes:end_idx_lanes] = lanes_non_z_img[1][non_z_lanes_xx[0][:num_col_lanes]] / 512.
+
+        lined_indices[i, :] = np.full(num_columns, i / 288.)
+
+    res_lanes = np.concatenate((np.expand_dims(reduced_img_lanes, axis=2), np.expand_dims(indices_img_lanes, axis=2)),
+                               axis=2)
+
+    res = np.concatenate((res_lanes, np.expand_dims(lined_indices, axis=2)), axis=2)
+    return res
+
+def img2_hybrid_points(img, num_columns=70, num_channels=3):
 
     lanes_img = np.zeros_like(img)
     lanes_img[img == 4] = 4

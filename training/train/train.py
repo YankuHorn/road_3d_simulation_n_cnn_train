@@ -13,7 +13,8 @@ from training.train.logger import TrainLogger
 from keras.callbacks import TensorBoard
 from training.data.conv_data_generator import conv_DataGenerator
 from training.data.pointnet_data_generator import PointNetDataGenerator
-from training.data.Data_generator import DataGenerator
+from training.data.hybrid_data_generator import DataGenerator
+from training.data.new_hybrid_data_generator import My_new_hybrid_data_generator
 from keras.models import load_model
 import socket
 from pathlib import Path
@@ -134,6 +135,12 @@ class Train:
             training_generator = DataGenerator(train_filesname, raw_directory, data_directory,
                                                        batch_size=batch_size, max_num_columns=max_columns,
                                                        shuffle=True, data_format=data_format, outputs=required_outputs)
+        elif model_name == "my_new_hybrid_network":
+            input_shape = (288, max_num_points, 2)
+            training_generator = My_new_hybrid_data_generator(train_filesname, raw_directory, data_directory,
+                                               batch_size=batch_size, max_num_columns=max_columns,
+                                               shuffle=True, data_format=data_format, outputs=required_outputs)
+
         val_data_directory = os.path.join(main_img_dir, "val", "meta_data")
         val_raw_directory = os.path.join(main_img_dir, "val", "front_view_image")
         val_filesname = DataUtils.load_all_file_names(val_raw_directory, required_name_start='front_view_image', img_format="png")
@@ -152,6 +159,11 @@ class Train:
                                                          batch_size=batch_size, max_num_columns=max_columns,
                                                          shuffle=True, augment=None,
                                                          data_format=data_format, outputs=required_outputs)
+        elif model_name == "my_new_hybrid_network":
+            validation_generator = My_new_hybrid_data_generator(val_filesname, val_raw_directory, val_data_directory,
+                                                          batch_size=batch_size, max_num_columns=max_columns,
+                                                          shuffle=True, data_format=data_format,
+                                                          outputs=required_outputs)
         # temp_ids = train_filesname[:5]
         # training_generator.generate_data_with_list_ids(temp_ids)
 
@@ -205,10 +217,11 @@ class Train:
             logger_tensorboard2.log_scalar('loss', history.history["val_loss"][0], i_epoch)
             logger_tensorboard3.log_scalar('horizon', history.history["horizon_loss"][0], i_epoch)
             logger_tensorboard4.log_scalar('horizon', history.history["val_horizon_loss"][0], i_epoch)
+
             # logger_tensorboard5.log_scalar('yaw', history.history["yaw_loss"][0], i_epoch)
             # logger_tensorboard6.log_scalar('yaw', history.history["val_yaw_loss"][0], i_epoch)
-            logger_tensorboard7.log_scalar('scene_class', history.history["scene_class_loss"][0], i_epoch)
-            logger_tensorboard8.log_scalar('scene_class', history.history["val_scene_class_loss"][0], i_epoch)
+            # logger_tensorboard7.log_scalar('scene_class', history.history["scene_class_loss"][0], i_epoch)
+            # logger_tensorboard8.log_scalar('scene_class', history.history["val_scene_class_loss"][0], i_epoch)
 
             # save_path, seg_model, filename, val_loss, val_acc
             filename = filename_init + str(i_epoch)
@@ -221,7 +234,7 @@ class Train:
                 the_file.write(str(history.history["horizon_loss"][0]) + " " + str(history.history["val_horizon_loss"][0]) + '\n')
 
             print(" ************** @@@@@@ just fitted generator, i_epoch=", i_epoch)
-
+            print("Saving into: ", save_path)
             i_epoch += 1
 
 

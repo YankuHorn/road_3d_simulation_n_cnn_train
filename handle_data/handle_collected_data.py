@@ -108,27 +108,13 @@ def show_seg_images(seg_dir, show=False, save=False):
             full_path_csv = os.path.join(seg_dir, csv_filename)
             objects = read_objects_csv(full_path_csv)
             display_image = add_objects_layer(display_image, objects)
+            show_in_plt(display_image, seg_filename, seg_dir)
 
-            fig = plt.figure(figsize=(2, 1))
-            fig.add_subplot(2, 1, 1)
-            plt.imshow(display_image)
-            raw_filename = seg_filename.replace('seg', 'img')
-            full_path_raw_image = os.path.join(seg_dir, raw_filename)
-            raw_img = cv2.imread(full_path_raw_image)
-            # plt.figure('raw_image')
-            fig.add_subplot(2, 1, 2)
-            plt.imshow(raw_img)
-
-            mng = plt.get_current_fig_manager()
-            mng.resize(*mng.window.maxsize())
-            # mng = plt.get_current_fig_manager()
-            # mng.full_screen_toggle()
-            if show:
-                plt.show()
 
             print('for the b-point')
             save_path = os.path.join(seg_dir, seg_filename.replace("seg","se9_for_prediction"))
             save_as_seg_image(display_image, save_path)
+
 
 if __name__ == "__main__":
     # seg_dir_name = 'D:\\phantomAI\\data\\collected_data\\2019-05-09-12-19-52_MapTest\\I92_exit_I280\\I92_exit_I280'
